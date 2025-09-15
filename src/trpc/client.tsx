@@ -21,6 +21,8 @@ function getQueryClient() {
 function getUrl() {
   const base = (() => {
     if (typeof window !== "undefined") return "";
+    //*TODO: si no despliegas en vercel puedes usar una variable de entorno de tus .env y luego usarla aqui. 
+    // En desarrollo seria localhost:3000 y en produccion la url de nuestro dominio
     if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
     return "http://localhost:3000";
   })();
