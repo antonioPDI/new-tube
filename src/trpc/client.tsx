@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { useState } from "react";
+import superjson from "superjson";
 import { makeQueryClient } from "./query-client";
 import type { AppRouter } from "./routers/_app";
 
@@ -21,7 +22,7 @@ function getQueryClient() {
 function getUrl() {
   const base = (() => {
     if (typeof window !== "undefined") return "";
-    //*TODO: si no despliegas en vercel puedes usar una variable de entorno de tus .env y luego usarla aqui. 
+    //*TODO: si no despliegas en vercel puedes usar una variable de entorno de tus .env y luego usarla aqui.
     // En desarrollo seria localhost:3000 y en produccion la url de nuestro dominio
     if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
     return "http://localhost:3000";
@@ -42,7 +43,7 @@ export function TRPCProvider(
     trpc.createClient({
       links: [
         httpBatchLink({
-          // transformer: superjson, <-- if you use a data transformer
+          transformer: superjson,
           url: getUrl(),
         }),
       ],

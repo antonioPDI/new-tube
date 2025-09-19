@@ -1,15 +1,19 @@
-import { trpc } from "@/trpc/server";
+import { HydrateClient, trpc } from "@/trpc/server";
+import { PageClient } from "./client";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+// If you want to prefetch data on the server and then
+// hydrate it on the client, you can do so like this.
 
 export default async function Home() {
-  const data = await trpc.hello({ text: "from tRPC" });
+  void trpc.hello.prefetch({ text: "Antonio tRPC" });
   return (
-    // <section className="flex min-h-screen flex-col items-center justify-center bg-background">
-    <div>
-      {/* <Image src="logo.svg" alt="Logo" width={100} height={100} /> */}
-      <p className="text-xl font-semibold tracking-tight">
-        Client component says: {data.greeting}
-      </p>
-    </div>
-    // </section>
+    <HydrateClient>
+      <Suspense fallback={<div>Loading client...</div>}>
+        <ErrorBoundary fallback={<div>Error loading client</div>}>
+          <PageClient />
+        </ErrorBoundary>
+      </Suspense>
+    </HydrateClient>
   );
 }

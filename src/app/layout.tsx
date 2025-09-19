@@ -20,7 +20,7 @@ export default function RootLayout({
     <ClerkProvider afterSignOutUrl={"/"}>
       <html lang="en">
         <body className={inter.className}>
-          {children}
+          
           <TRPCProvider>{children}</TRPCProvider>
         </body>
       </html>
