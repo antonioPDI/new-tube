@@ -62,6 +62,3 @@ export const protectedProcedure = t.procedure.use(async function isAuthed(
     },
   });
 });
-
-
-//prueba  hgcvhf
