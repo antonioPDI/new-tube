@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
   try {
     switch (eventType) {
       case "user.created": {
+        console.log("[Clerk] Creating user in DB");
         const d = data as UserJSON;
         await db
           .insert(users)

@@ -6,7 +6,7 @@ import { ErrorBoundary } from "react-error-boundary";
 // hydrate it on the client, you can do so like this.
 
 export default async function Home() {
-  void trpc.hello.prefetch({ text: "Antonio tRPC" });
+  void trpc.hello.prefetch({ text: "Antonio" });
   return (
     <HydrateClient>
       <Suspense fallback={<div>Loading client...</div>}>
