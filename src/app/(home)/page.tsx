@@ -1,19 +1,26 @@
+import HomeView from "@/modules/home/ui/views/home-view";
 import { HydrateClient, trpc } from "@/trpc/server";
-import { PageClient } from "./client";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
 // If you want to prefetch data on the server and then
 // hydrate it on the client, you can do so like this.
 
-export default async function Home() {
-  void trpc.hello.prefetch({ text: "Antonio" });
+export const dynamic = "force-dynamic"; // this page will be dynamic (SSR) even if no props are used
+
+interface PageProps {
+  searchParams: Promise<{
+    categoryId?: string;
+  }>;
+}
+
+const Page = async ({ searchParams }: PageProps) => {
+  const { categoryId } = await searchParams;
+
+  void trpc.categories.getMany.prefetch();
   return (
+    // cada vez que hayas hecho un prefetch en el servidor, envuelve
+    // el componente que lo va a usar con <HydrateClient>
     <HydrateClient>
-      <Suspense fallback={<div>Loading client...</div>}>
-        <ErrorBoundary fallback={<div>Error loading client</div>}>
-          <PageClient />
-        </ErrorBoundary>
-      </Suspense>
+      <HomeView categoryId={categoryId} />
     </HydrateClient>
   );
-}
+};
+export default Page;
