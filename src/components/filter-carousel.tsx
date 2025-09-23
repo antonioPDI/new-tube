@@ -46,7 +46,7 @@ export const FilterCarousel = ({ value, onSelect, data, isLoading }: FilterCarou
             </Badge>
           </CarouselItem>
 
-          {/* Items */}
+          {/* Items -- */}
           {!isLoading &&
             data.map((item) => (
               <CarouselItem key={item.value} className="pl-3 basis-auto">
