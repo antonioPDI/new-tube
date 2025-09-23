@@ -3,14 +3,23 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 // import { Badge } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
+import { useEffect, useState } from "react";
+import {
+  Carousel,
+  CarouselApi,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "./ui/carousel";
+import { Skeleton } from "./ui/skeleton";
 
 interface FilterCarouselProps {
   //this value is optional
   value?: string | null;
   //optional loading state
   isLoading?: boolean;
-  onSelect?: (value: string | null) => void;
+  onSelect: (value: string | null) => void;
   data: {
     value: string;
     label: string;
@@ -18,17 +27,32 @@ interface FilterCarouselProps {
 }
 
 export const FilterCarousel = ({ value, onSelect, data, isLoading }: FilterCarouselProps) => {
-  console.log("en filter carousel: ", data);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
   return (
     <div className="relative w-full">
       {/* Left fade */}
       <div
         className={cn(
           "absolute left-12 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none",
-          false && "hidden",
+          current === 1 && "hidden",
         )}
       />
       <Carousel
+        setApi={setApi}
         opts={{
           align: "start",
           dragFree: true,
@@ -37,21 +61,36 @@ export const FilterCarousel = ({ value, onSelect, data, isLoading }: FilterCarou
       >
         {/* this way we add padding between items */}
         <CarouselContent className="-ml-3">
-          <CarouselItem className="pl-3 basis-auto">
-            <Badge
-              variant={value === null ? "default" : "secondary"}
-              className="rounded-lg px-3 py-1 cursor-pointer whitespace-nowrap text-sm"
-            >
-              All
-            </Badge>
-          </CarouselItem>
+          {!isLoading && (
+            <CarouselItem onClick={() => onSelect(null)} className="pl-3 basis-auto">
+              <Badge
+                variant={!value ? "default" : "secondary"}
+                className="rounded-lg px-3 py-1 cursor-pointer whitespace-nowrap text-sm"
+              >
+                All
+              </Badge>
+            </CarouselItem>
+          )}
 
-          {/* Items -- */}
+          {/* Loading state */}
+          {isLoading &&
+            Array.from({ length: 14 }).map((_, i) => (
+              <CarouselItem key={i} className="pl-3 basis-auto">
+                <Skeleton className="px-3 py-1 h-full rounded-lg text-sm w-[100px] font-semibold">
+                  &nbsp;
+                </Skeleton>
+              </CarouselItem>
+            ))}
+
+          {/* Items */}
           {!isLoading &&
             data.map((item) => (
-              <CarouselItem key={item.value} className="pl-3 basis-auto">
+              <CarouselItem
+                key={item.value}
+                className="pl-3 basis-auto"
+                onClick={() => onSelect(item.value)}
+              >
                 <Badge
-                  onClick={() => onSelect?.(item.value)}
                   variant={value === item.value ? "default" : "secondary"}
                   className="rounded-lg px-3 py-1 cursor-pointer whitespace-nowrap text-sm"
                 >
@@ -68,7 +107,7 @@ export const FilterCarousel = ({ value, onSelect, data, isLoading }: FilterCarou
       <div
         className={cn(
           "absolute right-12 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none",
-          false && "hidden",
+          current === count && "hidden",
         )}
       />
     </div>

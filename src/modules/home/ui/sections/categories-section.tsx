@@ -1,4 +1,5 @@
 "use client";
+
 import { FilterCarousel } from "@/components/filter-carousel";
 import { trpc } from "@/trpc/client";
 import { Suspense } from "react";
@@ -25,9 +26,10 @@ const CategoriesSectionSuspense = ({ categoryId }: CategoriesSectionProps) => {
   const data = categories.map((cat) => ({ value: cat.id, label: cat.name }));
 
   if (data.length === 0) return null;
+  
   console.log(data);
 
-  return <FilterCarousel value={categoryId} data={data} />;
+  return <FilterCarousel onSelect={(x) => console.log(x)} value={categoryId} data={data} />;
 };
 
 export default CategoriesSection;
