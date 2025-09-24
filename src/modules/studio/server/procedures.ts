@@ -1,9 +1,10 @@
 import { db } from "@/db";
 import { videos } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
-import { eq, desc } from "drizzle-orm";
+import { and, desc, eq, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
+// only responsible for loading videos on studio page
 export const studioRouter = createTRPCRouter({
   getMany: protectedProcedure
 
@@ -26,11 +27,30 @@ export const studioRouter = createTRPCRouter({
       const data = await db
         .select()
         .from(videos)
-        .where(eq(videos.userId, userId))
-        .orderBy(desc(videos.createdAt))
-        .limit(limit)
-        .offset(cursor ? 1 : 0);
-        
-      return data;
+        .where(
+          and(
+            eq(videos.userId, userId),
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
+                  and(eq(videos.updatedAt, cursor.updatedAt), lt(videos.id, cursor.id)),
+                )
+              : undefined,
+          ),
+        )
+        .orderBy(desc(videos.updatedAt), desc(videos.id))
+        // add limit + 1 to check if there's more data
+        .limit(limit + 1);
+
+      const hasMore = data.length > limit;
+      // Remove the last item if we have more data
+      const items = hasMore ? data.slice(0, -1) : data;
+
+      //Set the next cursor to the last item if we have more data
+      const lastItem = items[items.length - 1];
+
+      const nextCursor = hasMore ? { id: lastItem.id, updatedAt: lastItem.updatedAt } : null;
+
+      return { items, nextCursor };
     }),
 });
