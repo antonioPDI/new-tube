@@ -1,8 +1,63 @@
-export const POST = async (req: Request) => {
-//   const { MUX_WEBHOOK_SECRET } = process.env;
+import { db } from "@/db";
+import { videos } from "@/db/schema";
+import { mux } from "@/lib/mux";
+import {
+  VideoAssetCreatedWebhookEvent,
+  VideoAssetErroredWebhookEvent,
+  VideoAssetReadyWebhookEvent,
+  VideoAssetTrackReadyWebhookEvent,
+} from "@mux/mux-node/resources/webhooks";
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 
-//   if (!MUX_WEBHOOK_SECRET) {
-//     return new Response("MUX_WEBHOOK_SECRET is not set", { status: 500 });
-//   }
-//   const text = await req.text();
+const SIGNIN_SECRET = process.env.MUX_WEBHOOK_SECRET!;
+
+type WebhookEvent =
+  | VideoAssetCreatedWebhookEvent
+  | VideoAssetReadyWebhookEvent
+  | VideoAssetTrackReadyWebhookEvent
+  | VideoAssetErroredWebhookEvent;
+
+export const POST = async (request: Request) => {
+  if (!SIGNIN_SECRET) {
+    throw new Error("Missing MUX_WEBHOOK_SECRET");
+  }
+
+  const headersPayload = await headers();
+  const muxSignature = headersPayload.get("mux-signature");
+
+  if (!muxSignature) {
+    return new Response("Missing mux-signature header", { status: 400 });
+  }
+
+  const payload = await request.json();
+  const body = JSON.stringify(payload);
+
+  mux.webhooks.verifySignature(
+    body,
+    {
+      "mux-signature": muxSignature,
+    },
+    SIGNIN_SECRET,
+  );
+
+  switch (payload.type as WebhookEvent["type"]) {
+    case "video.asset.created": {
+      const data = payload.data as VideoAssetCreatedWebhookEvent["data"];
+
+      if (!data.upload_id) {
+        console.log("No upload_id in payload");
+        return new Response("No upload ID in payload found", { status: 400 });
+      }
+
+      await db
+        .update(videos)
+        .set({ muxAssetId: data.id, muxStatus: data.status })
+        .where(eq(videos.muxUploadId, data.upload_id));
+      break;
+    }
+  }
+
+
+  return new Response("OK. Webhook received", { status: 200 });
 };
