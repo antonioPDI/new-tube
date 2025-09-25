@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DEFAULT_LIMIT } from "@/constants";
+import VideoThumbnail from "@/modules/videos/ui/components/video-thumbnail";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -60,16 +61,22 @@ const VideosSectionSuspense = () => {
               .flatMap((page) => page.items)
               .map((video) => (
                 /**
-                 * TODO: cambiar a next 13+ Link con role="link" en tableRow y onKeyDown para 
+                 * TODO: cambiar a next 13+ Link con role="link" en tableRow y onKeyDown para
                  * enter. Quitar legacyBehavior https://nextjs.org/docs/app/api-reference/components/link
                  * Link es mas rapido pero se puede tener un comportamiento similar o igual con
-                 * router.prefetch(href) (por ejemplo, en onPointerEnter, onMouseEnter, 
+                 * router.prefetch(href) (por ejemplo, en onPointerEnter, onMouseEnter,
                  * al enfocar la fila, o cuando la fila aparece en viewport)
                  */
 
                 <Link key={video.id} href={`/studio/videos/${video.id}`} legacyBehavior>
                   <TableRow /* role="link" */ className="cursor-pointer">
-                    <TableCell> {video.title} </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-4 ">
+                        <div className="relative aspect-video w-36 shrink-0 ">
+                          <VideoThumbnail />
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell> visibility </TableCell>
                     <TableCell> status </TableCell>
                     <TableCell> date </TableCell>
