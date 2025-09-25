@@ -21,15 +21,15 @@ const InfiniteScroll = ({
   });
 
   useEffect(() => {
-    if (!isManual && hasNextPage && !isFetchingNextPage && isIntersecting) {
+    if (isIntersecting && hasNextPage && !isFetchingNextPage && !isManual) {
       fetchNextPage();
     }
-  }, [isManual, hasNextPage, isFetchingNextPage, fetchNextPage, isIntersecting]);
+  }, [isIntersecting, hasNextPage, isFetchingNextPage, isManual, fetchNextPage]);
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <div ref={targetRef} className="h-1" />
-      {isFetchingNextPage ? (
+      {hasNextPage ? (
         <Button
           variant={"secondary"}
           disabled={!hasNextPage || isFetchingNextPage}

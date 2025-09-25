@@ -38,6 +38,12 @@ export const videos = pgTable("videos", {
     .references(() => users.id, { onDelete: "cascade" }),
   categoryId: uuid("category_id")
     .references(() => categories.id, { onDelete: "set null" }),
+  muxStatus: text("mux_status"),
+  muxAssetId: text("mux_asset_id").unique(),
+  muxUploadId: text("mux_upload_id").unique(),
+  muxPlaybackId: text("mux_playback_id").unique(),
+  muxTrackId: text("mux_track_id").unique(),
+  muxTrackStatus: text("mux_track_status"),
   // videoUrl: text("video_url").notNull().unique(),
   // thumbnailUrl: text("thumbnail_url").notNull().unique(),
   // views: text("views").default("0").notNull(),
