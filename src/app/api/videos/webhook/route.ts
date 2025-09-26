@@ -6,7 +6,7 @@ import {
   VideoAssetErroredWebhookEvent,
   VideoAssetReadyWebhookEvent,
   VideoAssetTrackReadyWebhookEvent,
-  VideoAssetDeletedWebhookEvent
+  VideoAssetDeletedWebhookEvent,
 } from "@mux/mux-node/resources/webhooks";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -112,9 +112,27 @@ export const POST = async (request: Request) => {
 
       console.log("Deleting video with upload ID:", data.upload_id);
 
+      await db.delete(videos).where(eq(videos.muxUploadId, data.upload_id));
+      break;
+    }
+    case "video.asset.track.ready": {
+      const data = payload.data as VideoAssetTrackReadyWebhookEvent["data"] & { asset_id: string };
+      // Typescript types from Mux are missing asset_id here, says it's possibly undefined, but it's always there
+      const assetId = data.asset_id;
+      const trackId = data.id;
+      const status = data.status;
+
+      if (!assetId) {
+        return new Response("No asset ID found in payload", { status: 400 });
+      }
+
       await db
-        .delete(videos)
-        .where(eq(videos.muxUploadId, data.upload_id));
+        .update(videos)
+        .set({
+          muxTrackId: trackId,
+          muxTrackStatus: status,
+        })
+        .where(eq(videos.muxAssetId, assetId));
       break;
     }
   }
