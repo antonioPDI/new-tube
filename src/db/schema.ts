@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 // prettier-ignore
 export const users = pgTable("users", {
@@ -28,11 +28,15 @@ export const categoryRelations = relations(users, ({ many }) => ({
   videos: many(videos),
 }));
 
+export const videoVisibility = pgEnum("video_visibility", [
+  "private",
+  "public",
+]);
+
 export const videos = pgTable("videos", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
   description: text("description"),
-
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -45,11 +49,17 @@ export const videos = pgTable("videos", {
   muxTrackId: text("mux_track_id").unique(),
   muxTrackStatus: text("mux_track_status"),
   // videoUrl: text("video_url").notNull().unique(),
-  // thumbnailUrl: text("thumbnail_url").notNull().unique(),
+  thumbnailUrl: text("thumbnail_url").unique(),
+  previewUrl: text("preview_url").unique(),
+  duration: integer("duration").default(0).notNull(), 
+  videoVisibility: videoVisibility("video_visibility").default("private").notNull(),
+  // likes: text("likes").default("0").notNull(),
+  // comments: text("comments").default("0").notNull(),
   // views: text("views").default("0").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
 
 export const videoRelations = relations(videos, ({ one }) => ({
   user: one(users, {

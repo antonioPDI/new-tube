@@ -10,8 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DEFAULT_LIMIT } from "@/constants";
+import { snakeCaseToTitle } from "@/lib/utils";
 import VideoThumbnail from "@/modules/videos/ui/components/video-thumbnail";
 import { trpc } from "@/trpc/client";
+import { format } from "date-fns";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -73,13 +75,27 @@ const VideosSectionSuspense = () => {
                     <TableCell>
                       <div className="flex items-center gap-4 ">
                         <div className="relative aspect-video w-36 shrink-0 ">
-                          <VideoThumbnail />
+                          <VideoThumbnail
+                            duration={video.duration}
+                            imageUrl={video.thumbnailUrl}
+                            previewUrl={video.previewUrl}
+                            title={video.title}
+                          />
+                        </div>
+
+                        <div className="flex flex-col overflow-hidden gap-y-1">
+                          <span className="text-sm line-clamp-1">{video.title}</span>
+                          <span className="text-xs text-muted-foreground line-clamp-1">
+                            {video.description || "No description available"}
+                          </span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell> visibility </TableCell>
-                    <TableCell> status </TableCell>
-                    <TableCell> date </TableCell>
+                    <TableCell>
+                      <div className="flex items-center ">{snakeCaseToTitle(video.muxStatus || "error")}</div>
+                    </TableCell>
+                    <TableCell> {format(new Date(video.createdAt), "d MM yyyy")} </TableCell>
                     <TableCell className="text-right"> views </TableCell>
                     <TableCell className="text-right"> comments </TableCell>
                     <TableCell className="text-right pr-6"> likes </TableCell>
