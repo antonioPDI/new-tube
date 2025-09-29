@@ -39,3 +39,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 # Notas:
 Por algun motivo yo lo debo tirar en windows con powershell porque si no empiezan a fallar cosas.
+
+tunel de app:
+ngrok http --url=josie-trussed-isabelle.ngrok-free.app 80
+
