@@ -20,6 +20,9 @@ type WebhookEvent =
   | VideoAssetErroredWebhookEvent
   | VideoAssetDeletedWebhookEvent;
 
+  //TODO: este post como se llama??? como seria la traza de este endpoint?
+  // este endpoint se llama cuando mux nos envia un webhook, es decir, una notificacion de que ha pasado algo con un video
+  // mux nos envia esta notificacion a la url que le hemos dicho en la configuracion del webhook, que en nuestro caso es /api/videos/webhook
 export const POST = async (request: Request) => {
   if (!SIGNIN_SECRET) {
     throw new Error("Missing MUX_WEBHOOK_SECRET");
@@ -118,9 +121,11 @@ export const POST = async (request: Request) => {
     case "video.asset.track.ready": {
       const data = payload.data as VideoAssetTrackReadyWebhookEvent["data"] & { asset_id: string };
       // Typescript types from Mux are missing asset_id here, says it's possibly undefined, but it's always there
+
+      console.log("track ready");
       const assetId = data.asset_id;
       const trackId = data.id;
-      const status = data.status;
+      const status  = data.status;
 
       if (!assetId) {
         return new Response("No asset ID found in payload", { status: 400 });
