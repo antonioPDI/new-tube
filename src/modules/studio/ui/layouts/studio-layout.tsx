@@ -12,7 +12,8 @@ export const StudioLayout = ({ children }: StudioLayoutProps) => {
     <SidebarProvider>
       <div className=" w-full">
         <StudioNavbar />
-        <div className="flex min-h-screen pt-[4rem]"> {/* ponemos 4rem porque el navbar tiene 4rem de altura (explicacion en 1:14:00) */}
+        <div className="flex min-h-screen pt-[4rem]">
+          {/* ponemos 4rem porque el navbar tiene 4rem de altura (explicacion en 1:14:00) */}
           <StudioSidebar />
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
