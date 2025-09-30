@@ -52,7 +52,7 @@ export const videos = pgTable("videos", {
   thumbnailUrl: text("thumbnail_url").unique(),
   previewUrl: text("preview_url").unique(),
   duration: integer("duration").default(0).notNull(), 
-  videoVisibility: videoVisibility("video_visibility").default("private").notNull(),
+  visibility: videoVisibility("video_visibility").default("private").notNull(),
   // likes: text("likes").default("0").notNull(),
   // comments: text("comments").default("0").notNull(),
   // views: text("views").default("0").notNull(),

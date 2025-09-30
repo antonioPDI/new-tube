@@ -11,6 +11,18 @@ export const videosRouter = createTRPCRouter({
       new_asset_settings: {
         passthrough: userId,
         playback_policy: ["public"],
+        input: [
+          {
+            // NOTE: para que el track este ready debemos hacer el tunnel de ngrok, por que? Porque mux necesita acceder a la url del video para procesarlo
+            // si no lo hacemos, mux no puede acceder a la url del video y el track nunca llega a estar ready
+            generated_subtitles: [
+              {
+                language_code: "en",
+                name: "English",
+              },
+            ],
+          },
+        ],
       },
       cors_origin: "*", //TODO: in production set to our domain
     });
