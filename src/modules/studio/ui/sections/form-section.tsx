@@ -53,6 +53,7 @@ const FormSectionSkeleton = () => {
 
 export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
   const [video] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
+  const [categories] = trpc.categories.getMany.useSuspenseQuery();
 
   const form = useForm<z.infer<typeof videoUpdateSchema>>({
     resolver: zodResolver(videoUpdateSchema),
@@ -132,6 +133,8 @@ export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
 
             {/* TODO: add thumbnail field here */}
 
+            {/* we can separate this category field in its own component with his own 
+            loading state skeleton and so on, of course, also the trpc prefetch */}
             {/* Category */}
             <FormField
               control={form.control}
@@ -150,10 +153,17 @@ export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                     </FormControl>
 
                     <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                    {/* <SelectContent>
                       <SelectItem value="music">Music</SelectItem>
                       <SelectItem value="gaming">Gaming</SelectItem>
                       <SelectItem value="vlogs">Vlogs</SelectItem>
-                    </SelectContent>
+                    </SelectContent> */}
                   </Select>
                 </FormItem>
               )}
