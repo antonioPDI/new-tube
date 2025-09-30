@@ -43,7 +43,10 @@ Por algun motivo yo lo debo tirar en windows con powershell porque si no empieza
 tunel de app:
 ngrok http --url=josie-trussed-isabelle.ngrok-free.app 80
 
+para tirar la db visual en local : bunx drizzle-kit studio
+cada vez que haces cambios en schema hay que hacer : bunx drizzle-kit push
 
+---
 
 bashrc:
 
