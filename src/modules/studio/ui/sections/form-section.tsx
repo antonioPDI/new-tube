@@ -17,12 +17,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { videoUpdateSchema } from "@/db/schema";
+import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
 import { trpc } from "@/trpc/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MoreVerticalIcon, TrashIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 interface FormSectionProps {
@@ -52,21 +54,32 @@ const FormSectionSkeleton = () => {
 };
 
 export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
+  const utils = trpc.useUtils();
   const [video] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
   const [categories] = trpc.categories.getMany.useSuspenseQuery();
+
+  const update = trpc.videos.update.useMutation({
+    onSuccess: () => {
+      utils.studio.getMany.invalidate();
+      utils.studio.getOne.invalidate({ id: videoId });
+      toast.success("Video updated successfully");
+    },
+    onError: () => {
+      toast.error("something went wrong");
+    },
+  });
 
   const form = useForm<z.infer<typeof videoUpdateSchema>>({
     resolver: zodResolver(videoUpdateSchema),
     defaultValues: video,
   });
-  const onSubmit = async (data: z.infer<typeof videoUpdateSchema>) => {
-    console.log("Submitting form data:", data);
+  const onSubmit = (data: z.infer<typeof videoUpdateSchema>) => {
+    update.mutate(data);
   };
 
   return (
     <Form {...form}>
-      {" "}
-      {/* //8:40 h */}
+      {/* //8:40 h del video*/}
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -75,7 +88,7 @@ export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
           </div>
 
           <div className="flex items-center gap-x-2">
-            <Button type="submit" disabled={false}>
+            <Button type="submit" disabled={update.isPending}>
               Save
             </Button>
             <DropdownMenu>
@@ -168,6 +181,25 @@ export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 </FormItem>
               )}
             />
+          </div>
+
+          <div className="flex flex-col gap-y-8 lg:col-span-2">
+            <div className="flex flex-col gap-4 bg-[#f9f9f9] rounded-xl overflow-hidden h-fit">
+              <div className="aspect-video overflow-hidden relative ">
+                <VideoPlayer
+                  playbackId={video.muxPlaybackId!}
+                  thumbnailUrl={video.thumbnailUrl!}
+                />
+              </div>
+
+              <div className="p-4 flex flex-col gap-y-6">
+                <div className="flex justify-between items-center gap-x-2">
+                  <div className="flex flex-col gap-y-1">
+                    <p className="text-muted-foreground text-xs">Video Link</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </form>
