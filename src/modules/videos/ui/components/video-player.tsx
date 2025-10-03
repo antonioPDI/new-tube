@@ -15,13 +15,13 @@ export const VideoPlayer = ({
   autoplay,
   onplay,
 }: VideoPlayerProps) => {
-  if (!playbackId) {
-    return null;
-  }
+  // if (!playbackId) {
+  //   return null;
+  // }
 
   return (
     <MuxPlayer
-      playbackId={playbackId}
+      playbackId={playbackId || ""}
       poster={thumbnailUrl || "/placeholder.svg"}
       autoPlay={autoplay}
       playerInitTime={0} /* si no ponemos esto vamos a tener un problema de hidratacion */
