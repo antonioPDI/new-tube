@@ -4,10 +4,12 @@ import { ResponsiveModal } from "@/components/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/client";
 import { Loader2Icon, PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import StudioUploader from "./studio-uploader";
 
 const StudioUploadModal = () => {
+  const router = useRouter();
   const utils = trpc.useUtils();
   const create = trpc.videos.create.useMutation({
     onSuccess: () => {
@@ -19,6 +21,12 @@ const StudioUploadModal = () => {
     },
   });
 
+  const onSuccess = () => {
+    if (!create.data?.video.id) return;
+    create.reset();
+    router.push(`/studio/videos/${create.data?.video.id}`);
+  };
+
   return (
     <>
       <ResponsiveModal
@@ -27,12 +35,16 @@ const StudioUploadModal = () => {
         title="Upload Video"
       >
         {create.data?.url ? (
-          <StudioUploader endpoint={create.data?.url} onSuccess={() => {}} />
+          <StudioUploader endpoint={create.data?.url} onSuccess={onSuccess} />
         ) : (
           <Loader2Icon className="animate-spin" />
         )}
       </ResponsiveModal>
-      <Button variant={"secondary"} onClick={() => create.mutate()} disabled={create.isPending}>
+      <Button
+        variant={"secondary"}
+        onClick={() => create.mutate()}
+        disabled={create.isPending}
+      >
         {create.isPending ? <Loader2Icon className="animate-spin" /> : <PlusIcon />}
         Create
       </Button>
