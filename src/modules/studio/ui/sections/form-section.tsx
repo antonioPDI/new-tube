@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { videoUpdateSchema } from "@/db/schema";
 import { snakeCaseToTitle } from "@/lib/utils";
+import { THUMBNAIL_FALLBACK } from "@/modules/videos/constants";
 import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
 import { trpc } from "@/trpc/client";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +30,7 @@ import {
   MoreVerticalIcon,
   TrashIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -180,7 +182,26 @@ export const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
               )}
             />
 
-            {/* TODO: add thumbnail field here */}
+            
+            <FormField
+              control={form.control}
+              name="thumbnailUrl"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Thumbnail URL</FormLabel>
+                  <FormControl>
+                    <div className="p-0.5 border border-dashed border-neutral-400 relative h-[84px] w-[153px] group ">
+                      <Image
+                        src={video.thumbnailUrl || THUMBNAIL_FALLBACK}
+                        alt="Thumbnail"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
             {/* we can separate this category field in its own component with his own 
             loading state skeleton and so on, of course, also the trpc prefetch */}
