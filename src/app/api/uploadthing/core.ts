@@ -53,7 +53,8 @@ export const ourFileRouter = {
           );
       }
 
-      // NOTE: This object is accessible in onUploadComplete as `metadata`, really?
+      // NOTE: proper cleanup before we do onUploadComplete to avoid orphaned files
+
       return { user, ...input };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -61,7 +62,7 @@ export const ourFileRouter = {
 
       await db
         .update(videos)
-        .set({ thumbnailUrl: file.url })
+        .set({ thumbnailUrl: file.url, thumbnailKey: file.key })
         .where(
           and(eq(videos.id, metadata.videoId), eq(videos.userId, metadata.user.id)),
         );

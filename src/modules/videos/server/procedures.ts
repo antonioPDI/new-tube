@@ -4,6 +4,7 @@ import { mux } from "@/lib/mux";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { UTApi } from "uploadthing/server";
 import z from "zod";
 /**
  * @brief This router handles video-related operations such as creating, updating,
@@ -85,6 +86,18 @@ export const videosRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Video not found" });
       }
 
+      if(existingVideo.thumbnailKey){
+       const utapi = new UTApi();
+       await utapi.deleteFiles(existingVideo.thumbnailKey);
+       await db
+         .update(videos)
+         .set({ thumbnailKey: null, thumbnailUrl: null })
+         .where(and(
+             eq(videos.id, input.id), 
+             eq(videos.userId, userId))
+         );
+      }
+
       if (!existingVideo.muxPlaybackId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -92,15 +105,30 @@ export const videosRouter = createTRPCRouter({
         });
       }
 
-      const thumbnailUrl = `https://image.mux.com/${existingVideo.muxPlaybackId}/thumbnail.jpg`;
+      const utapi = new UTApi();
+      
+      const tempThumbnailUrl = `https://image.mux.com/${existingVideo.muxPlaybackId}/thumbnail.jpg`;
+      // video 10:05 Build a YouTube Clone with Next.js 15: React, Tailwind, Drizzle, tRPC (2025)
+      //note: we are using UploadThing to upload the thumbnail from Mux to our storage. 
+      //note: we should never use the Mux url directly in our app, because the url can change or expire, we're using mux simply as a generator of the thumbnail and then we upload it to our storage with UploadThing
+      /** // NOTE: this is a much better way of doing this */
+      const uploadedThumbnail = await utapi.uploadFilesFromUrl(tempThumbnailUrl);
+
+      if(!uploadedThumbnail.data){
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error uploading thumbnail to UploadThing",
+        });
+      }
+      const { key : thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
 
       /** @question Why here we use [updatedVideo] with brackets? */
       /** @answer Because we expect a single video to be updated and returned, but the database query returns an array*/
-      
+
       // prettier-ignore
       const [updatedVideo] = await db
         .update(videos)
-        .set({ thumbnailUrl })
+        .set({ thumbnailUrl, thumbnailKey })
         .where(
           and(
             eq(videos.id, input.id), 
