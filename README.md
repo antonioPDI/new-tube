@@ -38,3 +38,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Screenshots of the web app
 
+![Capture of NewTube](./public/channel_content_new-tube.png)
+![Capture of NewTube](./public/new-tube_home.png)
+![Capture of NewTube](./public/studio_new-tube.png)
