@@ -50,8 +50,10 @@ export const videos = pgTable("videos", {
   muxTrackId: text("mux_track_id").unique(),
   muxTrackStatus: text("mux_track_status"),
   // videoUrl: text("video_url").notNull().unique(),
-  thumbnailUrl: text("thumbnail_url").unique(),
-  previewUrl: text("preview_url").unique(),
+  thumbnailUrl: text("thumbnail_url"), //esto en el tutorial no lo pone como 
+  thumbnailKey: text("thumbnail_key"),
+  previewUrl: text("preview_url"),
+  previewKey: text("preview_key"),
   duration: integer("duration").default(0).notNull(), 
   visibility: videoVisibility("video_visibility").default("private").notNull(),
   // likes: text("likes").default("0").notNull(),
