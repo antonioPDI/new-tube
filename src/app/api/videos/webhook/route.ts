@@ -26,6 +26,7 @@ type WebhookEvent =
 // mux nos envia esta notificacion a la url que le hemos dicho en la configuracion del webhook, que en nuestro caso es /api/videos/webhook
 export const POST = async (request: Request) => {
   if (!SIGNIN_SECRET) {
+    //
     throw new Error("Missing MUX_WEBHOOK_SECRET");
   }
 
