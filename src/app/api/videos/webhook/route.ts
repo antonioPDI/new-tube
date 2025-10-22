@@ -143,7 +143,7 @@ export const POST = async (request: Request) => {
       console.log("track ready");
       const assetId = data.asset_id;
       const trackId = data.id;
-      const status  = data.status;
+      const status = data.status;
 
       if (!assetId) {
         return new Response("No asset ID found in payload", { status: 400 });
