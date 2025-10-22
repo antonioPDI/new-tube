@@ -19,7 +19,9 @@ import { serve } from "@upstash/workflow/nextjs";
  * esté listo.
  */
 export const { POST } = serve(async (context) => {
-  await context.run("initial-step", () => {
+  
+  
+    await context.run("initial-step", () => {
     console.log("initial step ran");
   });
 

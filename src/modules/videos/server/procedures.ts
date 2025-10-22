@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
 import z from "zod";
+import { workflow } from '../../../lib/workflow';
 /**
  * @brief This router handles video-related operations such as creating, updating,
  * restoring thumbnails, and removing videos. It uses Drizzle ORM for database
@@ -43,6 +44,16 @@ import z from "zod";
  * Think REST, but without manual fetches/duplicated DTOs/SDKs—call typed functions directly from the client.
  */
 export const videosRouter = createTRPCRouter({
+  generateThumbnail: protectedProcedure.mutation(async ({ ctx,  }) => {
+    const { id: userId } = ctx.user;
+    const { workflowRunId } = await workflow.trigger({
+      url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/title`,
+      body: {
+        userId,
+      },
+    });
+    return workflowRunId; 
+  }),
   /**
    * @description Restores the thumbnail for a video using its Mux playback ID.
    * @param {Object} input - The input object containing the video ID.
