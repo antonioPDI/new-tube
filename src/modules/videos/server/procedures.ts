@@ -44,7 +44,22 @@ import { workflow } from "../../../lib/workflow";
  * Think REST, but without manual fetches/duplicated DTOs/SDKs—call typed functions directly from the client.
  */
 export const videosRouter = createTRPCRouter({
-  generateThumbnail: protectedProcedure
+  generateDescription: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { workflowRunId } = await workflow.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/description`,
+        body: {
+          userId,
+          videoId: input.id,
+        },
+        retries: 3,
+      });
+      return workflowRunId;
+    }),
+
+  generateTitle: protectedProcedure
     .input(z.object({ id: z.uuid() }))
     .mutation(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
@@ -53,6 +68,22 @@ export const videosRouter = createTRPCRouter({
         body: {
           userId,
           videoId: input.id,
+        },
+        retries: 3,
+      });
+      return workflowRunId;
+    }),
+  generateThumbnail: protectedProcedure
+    .input(z.object({ id: z.uuid(), prompt: z.string().min(10) }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      
+      const { workflowRunId } = await workflow.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/thumbnail`,
+        body: {
+          userId,
+          videoId: input.id,
+          prompt: input.prompt,
         },
         retries: 3,
       });

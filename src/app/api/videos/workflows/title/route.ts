@@ -47,6 +47,14 @@ export const { POST } = serve(async (context) => {
     return [existingVideo][0];
   });
 
+  const transcript = await context.run("get-transcript", async () => {
+    const trackUrl = `https:stream.mux.com/${video.muxPlaybackId}/text/${video.muxTrackId}.txt`;
+    const response = await fetch(trackUrl);
+    const text = await response.text();
+    if (!text) throw new Error("Bad Request: Transcript not found");
+    return text;
+  });
+
   const { body } = await context.api.openai.call("generate-title", {
     token: process.env.OPENAI_API_KEY!,
     operation: "chat.completions.create",
@@ -59,16 +67,19 @@ export const { POST } = serve(async (context) => {
         },
         {
           role: "user",
-          content: `Generate a catchy and concise title for a video based on the following description: ${video.description}`,
+          content: transcript,
         },
       ],
     },
   });
-  //coment 
+  //coment
 
   // Código Corregido y más seguro
-  const title = body.choices?.[0]?.message?.content ?? video.title;
-
+  const title = body.choices[0]?.message.content 
+  if (!title) {
+    throw new Error("Failed to generate title");
+  }
+  
   await context.run("update-video", async () => {
     await db
       .update(videos)
