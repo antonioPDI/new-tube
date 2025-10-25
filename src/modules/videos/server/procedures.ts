@@ -6,7 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
 import z from "zod";
-import { workflow } from '../../../lib/workflow';
+import { workflow } from "../../../lib/workflow";
 /**
  * @brief This router handles video-related operations such as creating, updating,
  * restoring thumbnails, and removing videos. It uses Drizzle ORM for database
@@ -30,10 +30,10 @@ import { workflow } from '../../../lib/workflow';
  * video uploads and processing.
  */
 /**
- * @explanation The `videosRouter` is a tRPC router that manages video-related operations. It acts 
- * like a controller in MVC architecture. It includes procedures for creating, updating, restoring 
- * thumbnails, and deleting videos. Each procedure is protected, ensuring that only authenticated 
- * users can perform these actions. The router interacts with the database using Drizzle ORM and 
+ * @explanation The `videosRouter` is a tRPC router that manages video-related operations. It acts
+ * like a controller in MVC architecture. It includes procedures for creating, updating, restoring
+ * thumbnails, and deleting videos. Each procedure is protected, ensuring that only authenticated
+ * users can perform these actions. The router interacts with the database using Drizzle ORM and
  * handles video uploads through Mux.
  * It is also like api REST endpoints but more type-safe and integrated with the tRPC framework.
  * query: read (equivalent to GET). mutation: write (equivalent to POST/PUT/PATCH/DELETE).
@@ -44,16 +44,20 @@ import { workflow } from '../../../lib/workflow';
  * Think REST, but without manual fetches/duplicated DTOs/SDKs—call typed functions directly from the client.
  */
 export const videosRouter = createTRPCRouter({
-  generateThumbnail: protectedProcedure.mutation(async ({ ctx,  }) => {
-    const { id: userId } = ctx.user;
-    const { workflowRunId } = await workflow.trigger({
-      url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/title`,
-      body: {
-        userId,
-      },
-    });
-    return workflowRunId; 
-  }),
+  generateThumbnail: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { workflowRunId } = await workflow.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/title`,
+        body: {
+          userId,
+          videoId: input.id,
+        },
+        retries: 3,
+      });
+      return workflowRunId;
+    }),
   /**
    * @description Restores the thumbnail for a video using its Mux playback ID.
    * @param {Object} input - The input object containing the video ID.
@@ -97,16 +101,13 @@ export const videosRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Video not found" });
       }
 
-      if(existingVideo.thumbnailKey){
-       const utapi = new UTApi();
-       await utapi.deleteFiles(existingVideo.thumbnailKey);
-       await db
-         .update(videos)
-         .set({ thumbnailKey: null, thumbnailUrl: null })
-         .where(and(
-             eq(videos.id, input.id), 
-             eq(videos.userId, userId))
-         );
+      if (existingVideo.thumbnailKey) {
+        const utapi = new UTApi();
+        await utapi.deleteFiles(existingVideo.thumbnailKey);
+        await db
+          .update(videos)
+          .set({ thumbnailKey: null, thumbnailUrl: null })
+          .where(and(eq(videos.id, input.id), eq(videos.userId, userId)));
       }
 
       if (!existingVideo.muxPlaybackId) {
@@ -117,21 +118,21 @@ export const videosRouter = createTRPCRouter({
       }
 
       const utapi = new UTApi();
-      
+
       const tempThumbnailUrl = `https://image.mux.com/${existingVideo.muxPlaybackId}/thumbnail.jpg`;
       // video 10:05 Build a YouTube Clone with Next.js 15: React, Tailwind, Drizzle, tRPC (2025)
-      //note: we are using UploadThing to upload the thumbnail from Mux to our storage. 
+      //note: we are using UploadThing to upload the thumbnail from Mux to our storage.
       //note: we should never use the Mux url directly in our app, because the url can change or expire, we're using mux simply as a generator of the thumbnail and then we upload it to our storage with UploadThing
       /** // NOTE: this is a much better way of doing this */
       const uploadedThumbnail = await utapi.uploadFilesFromUrl(tempThumbnailUrl);
 
-      if(!uploadedThumbnail.data){
+      if (!uploadedThumbnail.data) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error uploading thumbnail to UploadThing",
         });
       }
-      const { key : thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
+      const { key: thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
 
       /** @question Why here we use [updatedVideo] with brackets? */
       /** @answer Because we expect a single video to be updated and returned, but the database query returns an array*/
